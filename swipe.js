@@ -6,6 +6,11 @@
  *
 */
 
+// Swipe.js with these merged in
+
+// https://github.com/bradbirdsall/Swipe/pull/277 (with clean-ups and fixes: calling method in right places)
+// https://github.com/bradbirdsall/Swipe/pull/341 (plus own fix that checks pause before calling start() / stop())
+
 function Swipe(container, options) {
 
   "use strict";
@@ -84,6 +89,8 @@ function Swipe(container, options) {
 
     if (!browser.transitions) element.style.left = (index * -width) + 'px';
 
+    visibleThree();
+
     container.style.visibility = 'visible';
 
   }
@@ -96,7 +103,6 @@ function Swipe(container, options) {
   }
 
   function next() {
-
     if (options.continuous) slide(index+1);
     else if (index < slides.length - 1) slide(index+1);
 
@@ -113,7 +119,9 @@ function Swipe(container, options) {
 
     // do nothing if already on requested slide
     if (index == to) return;
-    
+
+    visibleThree();
+
     if (browser.transitions) {
 
       var direction = Math.abs(index-to) / (index-to); // 1: backward, -1: forward
@@ -214,12 +222,28 @@ function Swipe(container, options) {
 
   }
 
+  // hide all slides other than current one
+  function visibleThree() {
+    var pos = slides.length;
+
+    // first make this one visible
+    slides[index].style.visibility = 'visible';
+
+    // then check all others for hiding
+    while(pos--) {
+      slides[pos].style.visibility = pos === circle(index)
+          || pos === circle(index-1)
+          || pos === circle(index+1)
+          ? 'visible' : 'hidden'; 
+    }
+  }
+
   // setup auto slideshow
   var delay = options.auto || 0;
   var interval;
 
   function begin() {
-
+    clearTimeout(interval);
     interval = setTimeout(next, delay);
 
   }
@@ -283,6 +307,7 @@ function Swipe(container, options) {
       element.addEventListener('touchmove', this, false);
       element.addEventListener('touchend', this, false);
 
+      visibleThree();
     },
     move: function(event) {
 
@@ -435,6 +460,8 @@ function Swipe(container, options) {
 
       }
 
+      visibleThree();
+
     }
 
   }
@@ -481,17 +508,16 @@ function Swipe(container, options) {
       // restore delay
       delay = options.auto || 0;
 
-      paused = false;
-
-      begin();
-
+      if (paused) {
+        paused = false;
+        begin();
+      }
     },
     stop: function() {
-
-      paused = true;
-
-      stop();
-
+      if (!paused) {
+        paused = true;
+        stop();
+      }
     },
     slide: function(to, speed) {
       

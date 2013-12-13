@@ -224,6 +224,10 @@ function Swipe(container, options) {
 
   // hide all slides other than current one
   function visibleThree() {
+    // Make sure the DOM has not disappeared in the meantime.
+    if (!slides[index])
+      return;
+
     var pos = slides.length;
 
     // first make this one visible

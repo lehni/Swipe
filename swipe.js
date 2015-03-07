@@ -89,7 +89,7 @@ function Swipe(container, options) {
 
     if (!browser.transitions) element.style.left = (index * -width) + 'px';
 
-    visibleThree();
+    makeSlidesVisible();
 
     container.style.visibility = 'visible';
 
@@ -120,7 +120,7 @@ function Swipe(container, options) {
     // do nothing if already on requested slide
     if (index == to) return;
 
-    visibleThree();
+    makeSlidesVisible(to);
 
     if (browser.transitions) {
 
@@ -222,8 +222,11 @@ function Swipe(container, options) {
 
   }
 
-  // hide all slides other than current one
-  function visibleThree() {
+  // Show only the slides relevant to the current operation:
+  // If slidingToIndex is provided, show that slide and the current one
+  // If slideToIndex is not provided, show the previous, current and next
+  function makeSlidesVisible(slideToIndex) {
+
     // Make sure the DOM has not disappeared in the meantime.
     if (!slides[index])
       return;
@@ -236,10 +239,13 @@ function Swipe(container, options) {
     // then check all others for hiding
     while(pos--) {
       slides[pos].style.visibility = pos === circle(index)
-          || pos === circle(index-1)
-          || pos === circle(index+1)
+          || (slideToIndex !== undefined
+            ? pos === circle(slideToIndex)
+            : (pos === circle(index - 1)
+                || pos === circle(index + 1)))
           ? 'visible' : 'hidden'; 
     }
+
   }
 
   // setup auto slideshow
@@ -311,7 +317,7 @@ function Swipe(container, options) {
       element.addEventListener('touchmove', this, false);
       element.addEventListener('touchend', this, false);
 
-      visibleThree();
+      makeSlidesVisible();
     },
     move: function(event) {
 
@@ -464,7 +470,7 @@ function Swipe(container, options) {
 
       }
 
-      visibleThree();
+      makeSlidesVisible();
 
     }
 
